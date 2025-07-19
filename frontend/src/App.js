@@ -200,8 +200,12 @@ const Home = () => {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-red-500 mx-auto mb-4"></div>
-          <p className="text-white text-xl">Loading amazing content...</p>
+          <div className="w-16 h-12 bg-white rounded-lg flex items-center justify-center mx-auto mb-4">
+            <Play className="w-8 h-8 text-black fill-current" />
+          </div>
+          <h2 className="text-white text-xl font-bold tracking-wider mb-2">STREAMFLIX</h2>
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white mx-auto mb-4"></div>
+          <p className="text-white text-lg">Loading amazing content...</p>
         </div>
       </div>
     );
