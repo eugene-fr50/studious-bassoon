@@ -9,6 +9,9 @@ import {
   MovieDetailModal,
   VideoPlayerModal,
   SearchResults,
+  AuthModal,
+  SubscriptionModal,
+  DownloadsModal,
   Footer
 } from './components';
 
@@ -34,6 +37,15 @@ const tmdbAPI = {
   getTVDetails: (tvId) => fetch(`${TMDB_BASE_URL}/tv/${tvId}?api_key=${TMDB_API_KEY}`).then(res => res.json())
 };
 
+// Mock user management
+const getMockUser = () => {
+  const savedUser = localStorage.getItem('streamflix_user');
+  if (savedUser) {
+    return JSON.parse(savedUser);
+  }
+  return null;
+};
+
 const Home = () => {
   // State Management
   const [featuredMovie, setFeaturedMovie] = useState(null);
@@ -46,6 +58,12 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  
+  // User and subscription state
+  const [currentUser, setCurrentUser] = useState(getMockUser());
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
+  const [isDownloadsModalOpen, setIsDownloadsModalOpen] = useState(false);
 
   // Load initial data
   useEffect(() => {
@@ -174,12 +192,69 @@ const Home = () => {
     }
   };
 
+  // Handle download
+  const handleDownload = (movie) => {
+    if (!currentUser) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    const plan = {
+      FREE: { downloads: 0 },
+      PREMIUM: { downloads: 10 },
+      PRO: { downloads: 50 }
+    }[currentUser.subscription];
+
+    if (plan.downloads === 0) {
+      setIsSubscriptionModalOpen(true);
+      return;
+    }
+
+    if ((currentUser.downloadsUsed || 0) >= plan.downloads) {
+      alert('Download limit reached. Please upgrade your plan or remove some downloads.');
+      return;
+    }
+
+    // Mock download process
+    const updatedUser = {
+      ...currentUser,
+      downloadsUsed: (currentUser.downloadsUsed || 0) + 1,
+      downloadedMovies: [...(currentUser.downloadedMovies || []), movie]
+    };
+
+    localStorage.setItem('streamflix_user', JSON.stringify(updatedUser));
+    setCurrentUser(updatedUser);
+
+    // Show success message
+    alert(`"${movie.title || movie.name}" has been downloaded successfully!`);
+  };
+
+  // Handle login
+  const handleLogin = (user) => {
+    setCurrentUser(user);
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('streamflix_user');
+    setCurrentUser(null);
+  };
+
+  // Handle subscription upgrade
+  const handleUpgrade = (updatedUser) => {
+    setCurrentUser(updatedUser);
+    alert('Subscription upgraded successfully!');
+  };
+
   // Handle escape key for modals
   useEffect(() => {
     const handleEscKey = (e) => {
       if (e.key === 'Escape') {
         setIsDetailModalOpen(false);
         setIsVideoPlayerOpen(false);
+        setIsAuthModalOpen(false);
+        setIsSubscriptionModalOpen(false);
+        setIsDownloadsModalOpen(false);
         setCurrentVideoKey(null);
       }
     };
@@ -217,6 +292,11 @@ const Home = () => {
         onSearch={handleSearch}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        currentUser={currentUser}
+        onShowAuth={() => setIsAuthModalOpen(true)}
+        onShowSubscription={() => setIsSubscriptionModalOpen(true)}
+        onShowDownloads={() => setIsDownloadsModalOpen(true)}
+        onLogout={handleLogout}
       />
       
       {isSearching ? (
@@ -225,12 +305,19 @@ const Home = () => {
           isSearching={isSearching}
           onPlayTrailer={handlePlayTrailer}
           onShowDetails={handleShowDetails}
+          onDownload={handleDownload}
+          currentUser={currentUser}
+          onShowAuth={() => setIsAuthModalOpen(true)}
+          onShowSubscription={() => setIsSubscriptionModalOpen(true)}
         />
       ) : (
         <>
           <HeroSection 
             featuredMovie={featuredMovie}
             onPlayTrailer={handlePlayTrailer}
+            currentUser={currentUser}
+            onShowAuth={() => setIsAuthModalOpen(true)}
+            onShowSubscription={() => setIsSubscriptionModalOpen(true)}
           />
           
           <div className="relative z-10 -mt-32 pb-20">
@@ -241,6 +328,10 @@ const Home = () => {
                 movies={category.movies}
                 onPlayTrailer={handlePlayTrailer}
                 onShowDetails={handleShowDetails}
+                onDownload={handleDownload}
+                currentUser={currentUser}
+                onShowAuth={() => setIsAuthModalOpen(true)}
+                onShowSubscription={() => setIsSubscriptionModalOpen(true)}
               />
             ))}
           </div>
@@ -249,7 +340,29 @@ const Home = () => {
         </>
       )}
 
-      {/* Modals */}
+      {/* Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onLogin={handleLogin}
+      />
+
+      {/* Subscription Modal */}
+      <SubscriptionModal
+        isOpen={isSubscriptionModalOpen}
+        onClose={() => setIsSubscriptionModalOpen(false)}
+        currentUser={currentUser}
+        onUpgrade={handleUpgrade}
+      />
+
+      {/* Downloads Modal */}
+      <DownloadsModal
+        isOpen={isDownloadsModalOpen}
+        onClose={() => setIsDownloadsModalOpen(false)}
+        currentUser={currentUser}
+      />
+
+      {/* Movie Detail Modal */}
       <MovieDetailModal
         movie={selectedMovie}
         isOpen={isDetailModalOpen}
@@ -258,8 +371,13 @@ const Home = () => {
           setSelectedMovie(null);
         }}
         onPlayTrailer={handlePlayTrailer}
+        onDownload={handleDownload}
+        currentUser={currentUser}
+        onShowAuth={() => setIsAuthModalOpen(true)}
+        onShowSubscription={() => setIsSubscriptionModalOpen(true)}
       />
 
+      {/* Video Player Modal */}
       <VideoPlayerModal
         videoKey={currentVideoKey}
         isOpen={isVideoPlayerOpen}
