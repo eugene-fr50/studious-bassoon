@@ -40,7 +40,12 @@ export const Header = ({ onSearch, searchQuery, setSearchQuery }) => {
       <div className="flex items-center justify-between px-4 md:px-8 py-4">
         {/* Logo */}
         <div className="flex items-center space-x-8">
-          <h1 className="text-red-500 text-2xl md:text-3xl font-bold">MOVIEFLIX</h1>
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-8 bg-white rounded-lg flex items-center justify-center">
+              <Play className="w-6 h-6 text-black fill-current" />
+            </div>
+            <h1 className="text-white text-2xl md:text-3xl font-bold tracking-wider">STREAMFLIX</h1>
+          </div>
           <nav className="hidden md:flex space-x-6">
             <button className="text-white hover:text-gray-300 transition-colors">Home</button>
             <button className="text-white hover:text-gray-300 transition-colors">TV Shows</button>
