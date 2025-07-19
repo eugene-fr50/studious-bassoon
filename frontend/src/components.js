@@ -458,7 +458,7 @@ export const Footer = () => {
           </div>
         </div>
         <div className="border-t border-gray-800 pt-8 text-center">
-          <p>&copy; 2025 MovieFlix. All rights reserved.</p>
+          <p>&copy; 2025 StreamFlix. All rights reserved.</p>
         </div>
       </div>
     </footer>
